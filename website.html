@@ -1,0 +1,212 @@
+<head>
+    <style>
+        body {
+            background-color: rgb(137, 200, 46);
+            font-family: Calibri;
+            font-size: 11;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        button {
+            background-color: rgb(231, 0, 100);
+            font-family: Calibri;
+            font-size: 11;
+            border-radius: 5px;
+        }
+
+        input {
+            font-family: Calibri;
+            font-size: 11;
+            text-align: left;
+            display: flex;
+            flex: 1;
+            width: 160px;
+        }
+
+        label {
+            font-family: Calibri;
+            font-size: 11;
+            text-align: left;
+            display: flex;
+            width: 40px;
+        }
+
+        .labelAndInput {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+
+<!--setup the input boxes and button-->
+
+<body>
+    <div class="labelAndInput">
+        <label for="nameBox">Name:</label>
+        <input type="text" id="nameBox" placeholder="Enter Your Name">
+    </div>
+    <div class="labelAndInput">
+        <label for="emailBox">Email:</label>
+        <input type="text" id="emailBox" placeholder="Enter Your Email">
+    </div>
+    <div class="labelAndInput">
+        <label for="cardBox">Card:</label>
+        <input type="text" id="cardBox" placeholder="Enter a Proxy Credit Card Number">
+    </div>
+    <button id="submitButton" onclick="submit()">Submit</button>
+</body>
+
+
+<script>
+
+    const PERMITED_CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&'*+-/=?^_`{|}~"
+
+    // link the text inputs onblur to the validation
+    document.getElementById("nameBox").addEventListener("blur", name_validate)
+    document.getElementById("emailBox").addEventListener("blur", email_validate)
+    document.getElementById("cardBox").addEventListener("blur", card_validate)
+
+    function name_validate() {
+        text = document.getElementById("nameBox").value.trim()
+
+        //ensure there is a space with atleast 2 letters on either side, ensureing a first and last name
+        firstAndLast = false
+        for (const letter of text.slice(2, -2)) {
+            if (letter == " ") {
+                firstAndLast = true
+            }
+        }
+
+        // checks the characters in the string are valid
+        validCharacters = true
+        for (const letter of text) {
+            if (!PERMITED_CHARACTERS.includes(letter) && !(" " == letter)) {
+                validCharacters = false
+            }
+        }
+
+        //sets the colour of the box as appropriate for the validity
+        valid = firstAndLast && validCharacters
+        if (!valid) {
+            document.getElementById("nameBox").style.backgroundColor = "#e70064"
+        }
+        else {
+            document.getElementById("nameBox").style.backgroundColor = ""
+        }
+        return valid
+    }
+
+    function email_validate() {
+        text = document.getElementById("emailBox").value.trim()
+
+        //ensures an @ with a name and domain
+        atSplitText = text.split("@")
+        validAtSymbol = false
+        if (2 == atSplitText.length) {
+            if (atSplitText[0].length >= 1 && atSplitText[1].length >= 3) {
+                validAtSymbol = true
+            }
+
+            //ensures the characters in the email are valid
+            validCharacters = true
+            for (letter of atSplitText[0]) {
+                if (!PERMITED_CHARACTERS.includes(letter)) {
+                    validCharacters = false
+                }
+            }
+            for (letter of atSplitText[1]) {
+                if (!PERMITED_CHARACTERS.includes(letter) && !("." == letter)) {
+                    validCharacters = false
+                }
+            }
+
+            //checks for valid domain
+            validDomain = true
+            if (atSplitText[1].split(".").length > 1) {
+                for (subdomain of atSplitText[1].split(".")) {
+                    if (0 == subdomain.length) {
+                        validDomain = false
+                    }
+                }
+            }
+            valid = validAtSymbol && validCharacters && validDomain
+        }
+        else {
+            valid = false
+        }
+
+        //sets the colour of the box as appropriate for the validity
+        if (!valid) {
+            document.getElementById("emailBox").style.backgroundColor = "#e70064"
+        }
+        else {
+            document.getElementById("emailBox").style.backgroundColor = ""
+        }
+        return valid
+    }
+
+    function card_validate() {
+        text = document.getElementById("cardBox").value.trim()
+
+        //ensures the card number is correct length and numerical before performing checksum
+        checksum = false
+        if (16 == text.length) {
+            allDigits = true
+            digits = "0123456789"
+            for (digit of text) {
+                if (!(digits.includes(digit))) {
+                    allDigits = false
+                }
+            }
+
+            //performs Luhn checksum
+            if (allDigits) {
+                double = true
+                total = 0
+                for (digit of text) {
+                    number = parseInt(digit)
+                    if (double) {
+                        if (number < 5) { total += number * 2 }
+                        else { total += number * 2 - 9 }
+                    }
+                    else {
+                        total += number
+                    }
+                    double = !double
+                }
+                checksum = 0 == total % 10 && total > 0
+            }
+        }
+
+        //sets the colour of the box as appropriate for the validity
+        valid = checksum
+        if (!valid) {
+            document.getElementById("cardBox").style.backgroundColor = "#e70064"
+        }
+        else {
+            document.getElementById("cardBox").style.backgroundColor = ""
+        }
+        return valid
+    }
+
+    function submit() {
+        //checks that all fields are valid
+        validName = name_validate()
+        validEmail = email_validate()
+        validCard = card_validate()
+
+        //constructs email and uses mailto to send the user to it
+        if (validName && validEmail && validCard) {
+            body = ""
+            body += document.getElementById("nameBox").value.trim() + "%0A"
+            body += document.getElementById("emailBox").value.trim() + "%0A"
+            body += document.getElementById("cardBox").value.trim()
+            window.location = "mailto:challenge@dn-uk.com?subject=New%20Valid%20User&body=" + body
+        }
+    }
+
+</script>
